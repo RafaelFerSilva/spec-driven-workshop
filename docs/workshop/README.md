@@ -17,20 +17,20 @@ Tutorial reproduzível que demonstra, passo a passo, como construir uma API REST
 
 ## Índice
 
-| Etapa | Título | O que demonstra |
-|---|---|---|
-| 0 | [Estrutura inicial e User Stories](#etapa-0--estrutura-inicial-e-user-stories) | Como organizar requisitos e inicializar OpenSpec |
-| 1 | [Bootstrap do projeto NestJS](#etapa-1--bootstrap-do-projeto-nestjs) | Enabler técnico sem US — fluxo OpenSpec com `skip_specs` |
-| 2 | [Criar a spec OpenAPI](#etapa-2--criar-a-spec-openapi) | Spec-first: contrato antes do código |
-| 3 | [Implementar ErrorResponse (US-007)](#etapa-3--implementar-errorresponse-us-007) | Tratamento global de erros como primeiro passo |
-| 4 | [Implementar API Key Guard (US-006)](#etapa-4--implementar-api-key-guard-us-006) | Segurança transversal com Secure by Default |
-| 5 | [Implementar criação de tarefa (US-001)](#etapa-5--implementar-criação-de-tarefa-us-001) | Rich Domain Model, Clean Architecture e testes de propagação |
-| 6 | [Implementar consulta de tarefa (US-003)](#etapa-6--implementar-consulta-de-tarefa-us-003) | Leitura unitária e soft delete na query |
-| 7 | [Implementar listagem paginada (US-002)](#etapa-7--implementar-listagem-paginada-us-002) | Paginação, coerção de tipos e contagem atômica |
-| 8 | [Implementar atualização parcial (US-004)](#etapa-8--implementar-atualização-parcial-us-004) | PATCH semântico, no-op e revalidação de invariantes |
-| 9 | [Implementar remoção de tarefa (US-005)](#etapa-9--implementar-remoção-de-tarefa-us-005) | Soft delete como regra de negócio no domínio |
-| 10 | [Testes de jornada com Playwright](#etapa-10--testes-de-jornada-com-playwright) | Pirâmide completa de testes com API black-box |
-| 11 | [Validação final](#etapa-11--validação-final) | Quality gates e métricas de qualidade |
+| Etapa | Título                                                                                       | O que demonstra                                              |
+| ----- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 0     | [Estrutura inicial e User Stories](#etapa-0--estrutura-inicial-e-user-stories)               | Como organizar requisitos e inicializar OpenSpec             |
+| 1     | [Bootstrap do projeto NestJS](#etapa-1--bootstrap-do-projeto-nestjs)                         | Enabler técnico sem US — fluxo OpenSpec com `skip_specs`     |
+| 2     | [Criar a spec OpenAPI](#etapa-2--criar-a-spec-openapi)                                       | Spec-first: contrato antes do código                         |
+| 3     | [Implementar ErrorResponse (US-007)](#etapa-3--implementar-errorresponse-us-007)             | Tratamento global de erros como primeiro passo               |
+| 4     | [Implementar API Key Guard (US-006)](#etapa-4--implementar-api-key-guard-us-006)             | Segurança transversal com Secure by Default                  |
+| 5     | [Implementar criação de tarefa (US-001)](#etapa-5--implementar-criação-de-tarefa-us-001)     | Rich Domain Model, Clean Architecture e testes de propagação |
+| 6     | [Implementar consulta de tarefa (US-003)](#etapa-6--implementar-consulta-de-tarefa-us-003)   | Leitura unitária e soft delete na query                      |
+| 7     | [Implementar listagem paginada (US-002)](#etapa-7--implementar-listagem-paginada-us-002)     | Paginação, coerção de tipos e contagem atômica               |
+| 8     | [Implementar atualização parcial (US-004)](#etapa-8--implementar-atualização-parcial-us-004) | PATCH semântico, no-op e revalidação de invariantes          |
+| 9     | [Implementar remoção de tarefa (US-005)](#etapa-9--implementar-remoção-de-tarefa-us-005)     | Soft delete como regra de negócio no domínio                 |
+| 10    | [Testes de jornada com Playwright](#etapa-10--testes-de-jornada-com-playwright)              | Pirâmide completa de testes com API black-box                |
+| 11    | [Validação final](#etapa-11--validação-final)                                                | Quality gates e métricas de qualidade                        |
 
 ---
 
@@ -42,11 +42,11 @@ Tutorial reproduzível que demonstra, passo a passo, como construir uma API REST
 
 O PO escreve 7 User Stories cobrindo o MVP, armazenadas em `docs/`:
 
-| US | Título | Tipo |
-|---|---|---|
-| US-001 a US-005 | CRUD de tarefas | Funcional |
-| US-006 | Autenticação via API Key | Transversal |
-| US-007 | Respostas de erro padronizadas | Transversal |
+| US              | Título                         | Tipo        |
+| --------------- | ------------------------------ | ----------- |
+| US-001 a US-005 | CRUD de tarefas                | Funcional   |
+| US-006          | Autenticação via API Key       | Transversal |
+| US-007          | Respostas de erro padronizadas | Transversal |
 
 Cada US segue o formato: ator, objetivo, benefício, critérios de aceitação e notas de negócio.
 
@@ -58,22 +58,41 @@ npx @fission-ai/openspec@latest init --tools antigravity --language pt-br --no-a
 
 O que o `init` cria:
 
-| Diretório | Propósito |
-|---|---|
-| `openspec/config.yaml` | Configuração do OpenSpec |
-| `openspec/specs/` | Specs de capacidades (persistem) |
-| `openspec/changes/` | Change proposals (ciclo de vida) |
-| `.agents/skills/openspec-*/` | Skills para AI agents |
-| `.agents/workflows/opsx-*.md` | Workflows correspondentes |
+| Diretório                     | Propósito                        |
+| ----------------------------- | -------------------------------- |
+| `openspec/config.yaml`        | Configuração do OpenSpec         |
+| `openspec/specs/`             | Specs de capacidades (persistem) |
+| `openspec/changes/`           | Change proposals (ciclo de vida) |
+| `.agents/skills/openspec-*/`  | Skills para AI agents            |
+| `.agents/workflows/opsx-*.md` | Workflows correspondentes        |
 
 ### Conceitos-chave
 
 - **Spec** (`openspec/specs/`): Documentação de uma capacidade do sistema. Persiste após a mudança.
 - **Change** (`openspec/changes/<nome>/`): Proposta de mudança com artifacts (proposal, design, tasks). Ciclo: propor → aplicar → verificar → arquivar.
 
+### Explorar o estado do projeto
+
+Após o `init`, o primeiro passo do fluxo é **explorar** — analisar o que existe no repositório antes de propor qualquer mudança:
+
+```bash
+# Com AI agent:
+/opsx-explore
+
+# O explore analisa:
+# - USs em docs/ → identifica requisitos pendentes
+# - Specs em openspec/specs/ → identifica lacunas de especificação
+# - Código em src/ → identifica o que já foi implementado
+# - Testes em tests/ → identifica cobertura existente
+```
+
+**Resultado esperado**: Um relatório listando as 7 USs, indicando que não existe código-fonte, especificação OpenAPI, nem infraestrutura — tudo precisa ser criado.
+
+> Este é o momento em que o dev forma a visão completa do trabalho. O `explore` evita propostas cegas — antes de propor, você sabe exatamente onde está e para onde precisa ir.
+
 ### 💡 Lição
 
-> Antes de escrever qualquer código, invista tempo nas User Stories **e** inicialize as ferramentas de spec. O `openspec init` cria a estrutura que guia todo o fluxo — sem ela, não há como rastrear changes ou arquivar decisões.
+> Antes de escrever qualquer código, invista tempo nas User Stories **e** inicialize as ferramentas de spec. O `openspec init` cria a estrutura, e o `/opsx-explore` dá a visão completa do estado atual — sem eles, não há como rastrear changes ou planejar com segurança.
 
 ---
 
@@ -103,16 +122,16 @@ O `skip_specs: true` declara que esta change não altera comportamento da API. I
 
 ### O que é configurado
 
-| Componente | Ferramenta | Decisão relacionada |
-|---|---|---|
-| Package manager + deps | pnpm + package.json | — |
-| TypeScript | Strict mode, path aliases, ES2022 | — |
-| Build | SWC via `unplugin-swc` | [D-006](../adr/) |
-| HTTP | NestJS 12 + Fastify 5 | [D-004](../adr/), [D-005](../adr/) |
-| Testes | Vitest (3 perfis: unit, integration, e2e) | [D-003](../adr/), [D-008](../adr/) |
-| Lint | ESLint flat config + Prettier | [D-009](../adr/) |
-| Banco | Docker Compose com PostgreSQL 15-alpine | [D-010](../adr/) |
-| Swagger | @nestjs/swagger + @fastify/swagger | [D-011](../adr/) |
+| Componente             | Ferramenta                                | Decisão relacionada                |
+| ---------------------- | ----------------------------------------- | ---------------------------------- |
+| Package manager + deps | pnpm + package.json                       | —                                  |
+| TypeScript             | Strict mode, path aliases, ES2022         | —                                  |
+| Build                  | SWC via `unplugin-swc`                    | [D-006](../adr/)                   |
+| HTTP                   | NestJS 12 + Fastify 5                     | [D-004](../adr/), [D-005](../adr/) |
+| Testes                 | Vitest (3 perfis: unit, integration, e2e) | [D-003](../adr/), [D-008](../adr/) |
+| Lint                   | ESLint flat config + Prettier             | [D-009](../adr/)                   |
+| Banco                  | Docker Compose com PostgreSQL 15-alpine   | [D-010](../adr/)                   |
+| Swagger                | @nestjs/swagger + @fastify/swagger        | [D-011](../adr/)                   |
 
 ### Validação
 
@@ -150,21 +169,21 @@ A spec OpenAPI é o **contrato central** do projeto:
 
 ### O que a spec define
 
-| Componente | Conteúdo |
-|---|---|
-| **Schemas** | `Task`, `CreateTaskInput`, `UpdateTaskInput`, `ErrorResponse`, `PaginatedTasksResponse`, `TaskStatus` |
-| **Security** | `ApiKeyAuth` (header `x-api-key`) global |
-| **Paths** | 5 endpoints com `x-us-id` para rastreabilidade |
-| **Responses** | Sucesso + todos os erros com exemplos concretos |
+| Componente    | Conteúdo                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| **Schemas**   | `Task`, `CreateTaskInput`, `UpdateTaskInput`, `ErrorResponse`, `PaginatedTasksResponse`, `TaskStatus` |
+| **Security**  | `ApiKeyAuth` (header `x-api-key`) global                                                              |
+| **Paths**     | 5 endpoints com `x-us-id` para rastreabilidade                                                        |
+| **Responses** | Sucesso + todos os erros com exemplos concretos                                                       |
 
 ### Decisões tomadas nesta etapa
 
-| Decisão | Escolha | Por quê? |
-|---|---|---|
-| Soft delete (US-005) | `deletedAt` | Audit trail; padrão da referência |
-| API Key ausente (US-006) | HTTP 401 | RFC 7235: ausência = não autenticado |
-| Formato timestamps | ISO 8601 UTC | Padrão OpenAPI; legível |
-| Paginação | 0-based | Alinhado com US-002 |
+| Decisão                  | Escolha      | Por quê?                             |
+| ------------------------ | ------------ | ------------------------------------ |
+| Soft delete (US-005)     | `deletedAt`  | Audit trail; padrão da referência    |
+| API Key ausente (US-006) | HTTP 401     | RFC 7235: ausência = não autenticado |
+| Formato timestamps       | ISO 8601 UTC | Padrão OpenAPI; legível              |
+| Paginação                | 0-based      | Alinhado com US-002                  |
 
 ### Checklist de validação da spec
 
@@ -195,14 +214,15 @@ A spec OpenAPI é o **contrato central** do projeto:
 
 ### O que é criado
 
-| Camada | Arquivo | Responsabilidade |
-|---|---|---|
-| Shared | `src/shared/dto/error-response.dto.ts` | DTO de resposta de erro |
-| Adapter | `src/adapters/api/filters/all-exceptions.filter.ts` | Catch-all de exceções |
-| Testes | `src/adapters/api/filters/all-exceptions.filter.spec.ts` | 12 testes unitários |
-| Config | `src/app.module.ts` | Registro via `APP_FILTER` |
+| Camada  | Arquivo                                                  | Responsabilidade          |
+| ------- | -------------------------------------------------------- | ------------------------- |
+| Shared  | `src/shared/dto/error-response.dto.ts`                   | DTO de resposta de erro   |
+| Adapter | `src/adapters/api/filters/all-exceptions.filter.ts`      | Catch-all de exceções     |
+| Testes  | `src/adapters/api/filters/all-exceptions.filter.spec.ts` | 12 testes unitários       |
+| Config  | `src/app.module.ts`                                      | Registro via `APP_FILTER` |
 
 O `AllExceptionsFilter` trata 3 tipos de exceção:
+
 1. `DomainException` → mapeia para `ErrorResponse` com code e status.
 2. `HttpException` (NestJS) → extrai mensagem e details.
 3. Exceções genéricas → `INTERNAL_SERVER_ERROR` (500).
@@ -227,12 +247,12 @@ Para rotas públicas (como Swagger), usamos o decorator `@Public()` com `Reflect
 
 ### O que é criado
 
-| Camada | Arquivo | Responsabilidade |
-|---|---|---|
-| Adapter | `src/adapters/api/guards/api-key.guard.ts` | Validação do header `x-api-key` |
-| Adapter | `src/adapters/api/guards/public.decorator.ts` | Decorator `@Public()` |
-| Testes | `src/adapters/api/guards/api-key.guard.spec.ts` | 4 testes unitários |
-| Config | `.env` / `.env.example` | `API_KEY=my-dev-api-key-123` |
+| Camada  | Arquivo                                         | Responsabilidade                |
+| ------- | ----------------------------------------------- | ------------------------------- |
+| Adapter | `src/adapters/api/guards/api-key.guard.ts`      | Validação do header `x-api-key` |
+| Adapter | `src/adapters/api/guards/public.decorator.ts`   | Decorator `@Public()`           |
+| Testes  | `src/adapters/api/guards/api-key.guard.spec.ts` | 4 testes unitários              |
+| Config  | `.env` / `.env.example`                         | `API_KEY=my-dev-api-key-123`    |
 
 ### Fluxo do Guard
 
@@ -266,12 +286,12 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 ### Camadas implementadas
 
-| Camada | O que é criado |
-|---|---|
-| **Domínio** | Entidade `Task`, `TaskStatus`, port `TaskRepository`, `CreateTaskUseCase` |
+| Camada          | O que é criado                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| **Domínio**     | Entidade `Task`, `TaskStatus`, port `TaskRepository`, `CreateTaskUseCase`                     |
 | **Adaptadores** | `DrizzleTaskRepository`, `CreateTaskDto`, `TaskResponseDto`, `TasksController`, `TasksModule` |
-| **Schema** | Tabela `tasks` com UUID, timestamps, soft delete e enum `task_status` |
-| **Testes** | Unitários (model, use case, controller, repository) + E2E (4 cenários) |
+| **Schema**      | Tabela `tasks` com UUID, timestamps, soft delete e enum `task_status`                         |
+| **Testes**      | Unitários (model, use case, controller, repository) + E2E (4 cenários)                        |
 
 ### Fluxo OpenSpec
 
@@ -302,11 +322,11 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 ### Camadas implementadas
 
-| Camada | O que é criado/modificado |
-|---|---|
-| **Domínio** | `GetTaskByIdUseCase` + testes (sucesso, 404, propagação) |
+| Camada          | O que é criado/modificado                                      |
+| --------------- | -------------------------------------------------------------- |
+| **Domínio**     | `GetTaskByIdUseCase` + testes (sucesso, 404, propagação)       |
 | **Adaptadores** | `findById` no repositório, rota `GET /tasks/:id` no controller |
-| **Testes** | E2E: 200, 404, 400 (UUID inválido), 401 |
+| **Testes**      | E2E: 200, 404, 400 (UUID inválido), 401                        |
 
 ### 💡 Lição
 
@@ -328,11 +348,11 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 ### Camadas implementadas
 
-| Camada | O que é criado/modificado |
-|---|---|
-| **Domínio** | `FindAllTasksParams`, `PaginatedResult<T>`, `ListTasksUseCase` |
+| Camada          | O que é criado/modificado                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| **Domínio**     | `FindAllTasksParams`, `PaginatedResult<T>`, `ListTasksUseCase`                                |
 | **Adaptadores** | `findAll` no repositório, `ListTasksQueryDto`, `PaginatedTasksResponseDto`, rota `GET /tasks` |
-| **Testes** | E2E: 7 cenários (lista vazia, paginação, defaults, validação) |
+| **Testes**      | E2E: 7 cenários (lista vazia, paginação, defaults, validação)                                 |
 
 ### 💡 Lição
 
@@ -354,11 +374,11 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 ### Camadas implementadas
 
-| Camada | O que é criado/modificado |
-|---|---|
-| **Domínio** | `UpdateTaskProps`, método `task.update()`, `UpdateTaskUseCase` |
+| Camada          | O que é criado/modificado                                         |
+| --------------- | ----------------------------------------------------------------- |
+| **Domínio**     | `UpdateTaskProps`, método `task.update()`, `UpdateTaskUseCase`    |
 | **Adaptadores** | `update` no repositório, `UpdateTaskDto`, rota `PATCH /tasks/:id` |
-| **Testes** | 10 testes unitários do modelo + 7 do use case + 10 e2e |
+| **Testes**      | 10 testes unitários do modelo + 7 do use case + 10 e2e            |
 
 ### 💡 Lição
 
@@ -379,11 +399,11 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 ### Camadas implementadas
 
-| Camada | O que é criado/modificado |
-|---|---|
-| **Domínio** | Método `task.delete()` + testes, `DeleteTaskUseCase` |
+| Camada          | O que é criado/modificado                                                       |
+| --------------- | ------------------------------------------------------------------------------- |
+| **Domínio**     | Método `task.delete()` + testes, `DeleteTaskUseCase`                            |
 | **Adaptadores** | `delete` no repositório (SQL update), rota `DELETE /tasks/:id` (204 No Content) |
-| **Testes** | 3 unitários do modelo + 5 do use case + 6 e2e |
+| **Testes**      | 3 unitários do modelo + 5 do use case + 6 e2e                                   |
 
 ### 💡 Lição
 
@@ -454,15 +474,15 @@ openspec validate --specs  # Specs válidas
 
 ### Resultados
 
-| Camada | Comando | Resultado |
-|---|---|---|
-| Lint & Padrões | `pnpm lint` | ✅ 0 erros |
-| Build | `pnpm build` | ✅ 26 arquivos |
-| Unitários | `pnpm test` | ✅ 75 testes |
-| Cobertura | `pnpm test:cov` | ✅ 98.51% linhas |
-| E2E | `pnpm test:e2e` | ✅ 32 testes |
-| Jornada API | `pnpm test:pw` | ✅ 8 testes |
-| Specs | `openspec validate` | ✅ válidas |
+| Camada         | Comando             | Resultado        |
+| -------------- | ------------------- | ---------------- |
+| Lint & Padrões | `pnpm lint`         | ✅ 0 erros       |
+| Build          | `pnpm build`        | ✅ 26 arquivos   |
+| Unitários      | `pnpm test`         | ✅ 75 testes     |
+| Cobertura      | `pnpm test:cov`     | ✅ 98.51% linhas |
+| E2E            | `pnpm test:e2e`     | ✅ 32 testes     |
+| Jornada API    | `pnpm test:pw`      | ✅ 8 testes      |
+| Specs          | `openspec validate` | ✅ válidas       |
 
 ---
 
@@ -472,4 +492,4 @@ openspec validate --specs  # Specs válidas
 2. **Modelos anêmicos são proibidos**: Centralize validações dentro da entidade de domínio rica.
 3. **Use cases devem propagar falhas**: Nunca silencie exceções; assegure nos testes que efeitos colaterais são abortados.
 4. **Execute `pnpm test:pw` antes de abrir PR**: Testar contra servidor e banco reais é a melhor proteção contra falhas de rede e serialização.
-5. **Cada decisão é rastreável**: ADRs existem para que o time saiba *por quê*, não só *o quê*.
+5. **Cada decisão é rastreável**: ADRs existem para que o time saiba _por quê_, não só _o quê_.
