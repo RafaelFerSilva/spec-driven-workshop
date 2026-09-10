@@ -1,14 +1,18 @@
-# Dependências
+# Dependencies
 node_modules/
-.pnpm-store/
 
 # Build
 dist/
-*.tsbuildinfo
+tsconfig.build.tsbuildinfo
 
-# Ambiente
+# Environment
 .env
-!.env.example
+
+# Test coverage
+coverage/
+
+# Drizzle migrations metadata
+drizzle/meta/
 
 # IDE
 .idea/
@@ -16,11 +20,10 @@ dist/
 *.swp
 *.swo
 
-# Testes
-coverage/
-test-results/
-playwright-report/
-
 # OS
 .DS_Store
 Thumbs.db
+
+# Playwright
+test-results/
+playwright-report/
