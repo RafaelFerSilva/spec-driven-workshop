@@ -46,10 +46,7 @@ describe('ApiKeyGuard', () => {
     const canActivate = guard.canActivate(context)
 
     expect(canActivate).toBe(true)
-    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
-      IS_PUBLIC_KEY,
-      expect.any(Array),
-    )
+    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, expect.any(Array))
   })
 
   it('should allow access when a valid x-api-key header is provided', () => {

@@ -10,12 +10,7 @@ export class DomainException extends Error {
   public readonly httpStatus: number
   public readonly details?: DomainErrorDetail[]
 
-  constructor(
-    code: ErrorCode,
-    message: string,
-    httpStatus = 400,
-    details?: DomainErrorDetail[],
-  ) {
+  constructor(code: ErrorCode, message: string, httpStatus = 400, details?: DomainErrorDetail[]) {
     super(message)
     this.name = 'DomainException'
     this.code = code

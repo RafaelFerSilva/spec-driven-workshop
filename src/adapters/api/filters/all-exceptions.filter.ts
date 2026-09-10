@@ -1,18 +1,8 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common'
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { HttpAdapterHost } from '@nestjs/core'
 import { ErrorCode } from '../../../domain/constants/error-code.enum'
 import { DomainException } from '../../../domain/exception/domain.exception'
-import {
-  ErrorDetailDto,
-  ErrorResponseDto,
-} from '../../../shared/dto/error-response.dto'
+import { ErrorDetailDto, ErrorResponseDto } from '../../../shared/dto/error-response.dto'
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -25,7 +15,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse()
 
-    let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
+    let httpStatus: number
     let errorResponse: ErrorResponseDto
 
     if (exception instanceof DomainException) {
@@ -33,9 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorResponse = {
         code: exception.code,
         message: exception.message,
-        ...(exception.details && exception.details.length > 0
-          ? { details: exception.details }
-          : {}),
+        ...(exception.details && exception.details.length > 0 ? { details: exception.details } : {}),
       }
     } else if (exception instanceof HttpException) {
       httpStatus = exception.getStatus()
@@ -58,10 +46,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       } else if (typeof res === 'object' && res !== null) {
         const resObj = res as Record<string, unknown>
 
-        if (
-          typeof resObj.code === 'string' &&
-          Object.values(ErrorCode).includes(resObj.code as ErrorCode)
-        ) {
+        if (typeof resObj.code === 'string' && Object.values(ErrorCode).includes(resObj.code as ErrorCode)) {
           code = resObj.code as ErrorCode
         }
 
@@ -98,7 +83,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else {
       this.logger.error(
         'Unhandled exception caught by AllExceptionsFilter',
-        exception instanceof Error ? exception.stack : exception,
+        exception instanceof Error ? exception.stack : exception
       )
 
       httpStatus = HttpStatus.INTERNAL_SERVER_ERROR

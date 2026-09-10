@@ -39,10 +39,7 @@ describe('AllExceptionsFilter', () => {
 
   describe('DomainException handling', () => {
     it('should format DomainException with default 400 status', () => {
-      const exception = new DomainException(
-        ErrorCode.VALIDATION_ERROR,
-        'Invalid input',
-      )
+      const exception = new DomainException(ErrorCode.VALIDATION_ERROR, 'Invalid input')
 
       filter.catch(exception, mockArgumentsHost)
 
@@ -52,16 +49,12 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.VALIDATION_ERROR,
           message: 'Invalid input',
         },
-        400,
+        400
       )
     })
 
     it('should format DomainException with 404 TASK_NOT_FOUND', () => {
-      const exception = new DomainException(
-        ErrorCode.TASK_NOT_FOUND,
-        'Task not found',
-        HttpStatus.NOT_FOUND,
-      )
+      const exception = new DomainException(ErrorCode.TASK_NOT_FOUND, 'Task not found', HttpStatus.NOT_FOUND)
 
       filter.catch(exception, mockArgumentsHost)
 
@@ -71,7 +64,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.TASK_NOT_FOUND,
           message: 'Task not found',
         },
-        404,
+        404
       )
     })
 
@@ -79,7 +72,7 @@ describe('AllExceptionsFilter', () => {
       const exception = new DomainException(
         ErrorCode.UNAUTHORIZED,
         'Header x-api-key is missing',
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED
       )
 
       filter.catch(exception, mockArgumentsHost)
@@ -90,7 +83,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.UNAUTHORIZED,
           message: 'Header x-api-key is missing',
         },
-        401,
+        401
       )
     })
 
@@ -98,7 +91,7 @@ describe('AllExceptionsFilter', () => {
       const exception = new DomainException(
         ErrorCode.INVALID_API_KEY,
         'Provided API key is invalid',
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED
       )
 
       filter.catch(exception, mockArgumentsHost)
@@ -109,7 +102,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.INVALID_API_KEY,
           message: 'Provided API key is invalid',
         },
-        401,
+        401
       )
     })
 
@@ -119,7 +112,7 @@ describe('AllExceptionsFilter', () => {
         ErrorCode.VALIDATION_ERROR,
         'Validation failed',
         HttpStatus.BAD_REQUEST,
-        details,
+        details
       )
 
       filter.catch(exception, mockArgumentsHost)
@@ -131,7 +124,7 @@ describe('AllExceptionsFilter', () => {
           message: 'Validation failed',
           details,
         },
-        400,
+        400
       )
     })
   })
@@ -148,7 +141,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.VALIDATION_ERROR,
           message: 'Bad request message',
         }),
-        400,
+        400
       )
     })
 
@@ -163,7 +156,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.TASK_NOT_FOUND,
           message: 'Resource not found',
         }),
-        404,
+        404
       )
     })
 
@@ -178,14 +171,14 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.UNAUTHORIZED,
           message: 'Unauthorized access',
         }),
-        401,
+        401
       )
     })
 
     it('should preserve explicit ErrorCode in HttpException object response', () => {
       const exception = new HttpException(
         { code: ErrorCode.INVALID_API_KEY, message: 'API key rejected' },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED
       )
 
       filter.catch(exception, mockArgumentsHost)
@@ -196,17 +189,14 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.INVALID_API_KEY,
           message: 'API key rejected',
         },
-        401,
+        401
       )
     })
 
     it('should extract details from validation array of strings', () => {
       const exception = new BadRequestException({
         statusCode: 400,
-        message: [
-          'title must be between 3 and 100 characters',
-          'status must be a valid enum value',
-        ],
+        message: ['title must be between 3 and 100 characters', 'status must be a valid enum value'],
         error: 'Bad Request',
       })
 
@@ -228,7 +218,7 @@ describe('AllExceptionsFilter', () => {
             },
           ],
         },
-        400,
+        400
       )
     })
 
@@ -247,7 +237,7 @@ describe('AllExceptionsFilter', () => {
           message: 'Validation failed',
           details: [{ field: 'page', message: 'must not be negative' }],
         },
-        400,
+        400
       )
     })
   })
@@ -264,7 +254,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.INTERNAL_SERVER_ERROR,
           message: 'Internal server error',
         },
-        500,
+        500
       )
     })
 
@@ -279,7 +269,7 @@ describe('AllExceptionsFilter', () => {
           code: ErrorCode.INTERNAL_SERVER_ERROR,
           message: 'Internal server error',
         },
-        500,
+        500
       )
     })
   })
