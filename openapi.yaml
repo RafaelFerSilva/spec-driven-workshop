@@ -1,0 +1,517 @@
+openapi: 3.0.3
+info:
+  title: Task Management API
+  description: |
+    API REST para gerenciamento de tarefas — MVP do workshop Spec-Driven Development.
+
+    ## Autenticação
+    Todos os endpoints exigem API Key via header `x-api-key`.
+
+    ## Códigos de Erro
+    | Code                  | HTTP | Descrição                    |
+    |-----------------------|------|------------------------------|
+    | VALIDATION_ERROR      | 400  | Dados de entrada inválidos   |
+    | UNAUTHORIZED          | 401  | API Key ausente              |
+    | INVALID_API_KEY       | 403  | API Key inválida             |
+    | TASK_NOT_FOUND        | 404  | Tarefa não encontrada        |
+    | INTERNAL_SERVER_ERROR | 500  | Erro interno do servidor     |
+  version: 1.0.0
+  contact:
+    name: Workshop Team
+
+servers:
+  - url: http://localhost:3000
+    description: Ambiente de desenvolvimento
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /api/tasks:
+    post:
+      x-us-id: US-001
+      summary: Criar tarefa
+      description: Cria uma nova tarefa com título, descrição opcional e status.
+      operationId: createTask
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+            example:
+              title: Implementar autenticação
+              description: Adicionar API Key guard global
+              status: PENDING
+      responses:
+        '201':
+          description: Tarefa criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                title: Implementar autenticação
+                description: Adicionar API Key guard global
+                status: PENDING
+                createdAt: '2026-09-09T22:00:00.000Z'
+                updatedAt: '2026-09-09T22:00:00.000Z'
+                deletedAt: null
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Validation failed
+                details:
+                  - field: title
+                    message: title must be at least 3 characters
+        '401':
+          description: API Key ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: UNAUTHORIZED
+                message: API key is required
+        '403':
+          description: API Key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_API_KEY
+                message: Invalid API key
+
+    get:
+      x-us-id: US-002
+      summary: Listar tarefas com paginação
+      description: Retorna uma lista paginada de tarefas. Tarefas removidas (soft delete) não são incluídas.
+      operationId: listTasks
+      tags:
+        - Tasks
+      parameters:
+        - name: page
+          in: query
+          description: Número da página (0-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          description: Quantidade de itens por página
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de tarefas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTasksResponse'
+              example:
+                items:
+                  - id: 550e8400-e29b-41d4-a716-446655440000
+                    title: Implementar autenticação
+                    description: Adicionar API Key guard global
+                    status: PENDING
+                    createdAt: '2026-09-09T22:00:00.000Z'
+                    updatedAt: '2026-09-09T22:00:00.000Z'
+                    deletedAt: null
+                total: 1
+                page: 0
+                pageSize: 10
+        '400':
+          description: Parâmetros de paginação inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Validation failed
+                details:
+                  - field: pageSize
+                    message: pageSize must not be greater than 100
+        '401':
+          description: API Key ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: UNAUTHORIZED
+                message: API key is required
+        '403':
+          description: API Key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_API_KEY
+                message: Invalid API key
+
+  /api/tasks/{id}:
+    get:
+      x-us-id: US-003
+      summary: Consultar tarefa por ID
+      description: Retorna os detalhes de uma tarefa específica. Tarefas removidas (soft delete) retornam 404.
+      operationId: getTask
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          description: UUID da tarefa
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalhes da tarefa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                title: Implementar autenticação
+                description: Adicionar API Key guard global
+                status: IN_PROGRESS
+                createdAt: '2026-09-09T22:00:00.000Z'
+                updatedAt: '2026-09-09T23:00:00.000Z'
+                deletedAt: null
+        '400':
+          description: ID com formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Validation failed
+                details:
+                  - field: id
+                    message: id must be a valid UUID
+        '401':
+          description: API Key ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: UNAUTHORIZED
+                message: API key is required
+        '403':
+          description: API Key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_API_KEY
+                message: Invalid API key
+        '404':
+          description: Tarefa não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: TASK_NOT_FOUND
+                message: Task not found
+
+    patch:
+      x-us-id: US-004
+      summary: Atualizar tarefa parcialmente
+      description: Atualiza parcialmente uma tarefa existente. Campos não enviados permanecem inalterados.
+      operationId: updateTask
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          description: UUID da tarefa
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+            example:
+              status: DONE
+      responses:
+        '200':
+          description: Tarefa atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                title: Implementar autenticação
+                description: Adicionar API Key guard global
+                status: DONE
+                createdAt: '2026-09-09T22:00:00.000Z'
+                updatedAt: '2026-09-10T01:00:00.000Z'
+                deletedAt: null
+        '400':
+          description: Erro de validação ou ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Validation failed
+                details:
+                  - field: title
+                    message: title must be at least 3 characters
+        '401':
+          description: API Key ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: UNAUTHORIZED
+                message: API key is required
+        '403':
+          description: API Key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_API_KEY
+                message: Invalid API key
+        '404':
+          description: Tarefa não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: TASK_NOT_FOUND
+                message: Task not found
+
+    delete:
+      x-us-id: US-005
+      summary: Remover tarefa (soft delete)
+      description: Marca a tarefa como removida (soft delete com campo `deletedAt`). A tarefa não aparecerá em listagens ou consultas subsequentes.
+      operationId: deleteTask
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          description: UUID da tarefa
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Tarefa removida com sucesso (sem conteúdo)
+        '401':
+          description: API Key ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: UNAUTHORIZED
+                message: API key is required
+        '403':
+          description: API Key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_API_KEY
+                message: Invalid API key
+        '404':
+          description: Tarefa não encontrada ou já removida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: TASK_NOT_FOUND
+                message: Task not found
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Chave de API para autenticação. Em desenvolvimento, usar valor estático configurado via variável de ambiente `API_KEY`.
+
+  schemas:
+    TaskStatus:
+      type: string
+      enum:
+        - PENDING
+        - IN_PROGRESS
+        - DONE
+      description: Status possíveis de uma tarefa
+
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único da tarefa
+          example: 550e8400-e29b-41d4-a716-446655440000
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Título da tarefa
+          example: Implementar autenticação
+        description:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: Descrição detalhada da tarefa
+          example: Adicionar API Key guard global
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: Data/hora de criação (ISO 8601 UTC)
+          example: '2026-09-09T22:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Data/hora da última atualização (ISO 8601 UTC)
+          example: '2026-09-09T22:00:00.000Z'
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data/hora da remoção lógica (null se não removida)
+          example: null
+
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Título da tarefa (obrigatório)
+          example: Implementar autenticação
+        description:
+          type: string
+          maxLength: 2000
+          description: Descrição detalhada (opcional)
+          example: Adicionar API Key guard global
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    UpdateTaskInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Novo título da tarefa
+          example: Implementar autenticação v2
+        description:
+          type: string
+          maxLength: 2000
+          description: Nova descrição da tarefa
+          example: Atualização do guard de API Key
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Código de erro padronizado (UPPER_SNAKE_CASE)
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: Mensagem legível do erro
+          example: Validation failed
+        details:
+          type: array
+          description: Detalhes adicionais sobre o erro (campos de validação, etc.)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Campo que causou o erro
+              message:
+                type: string
+                description: Descrição do erro no campo
+
+    PaginatedTasksResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - pageSize
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+          description: Lista de tarefas na página atual
+        total:
+          type: integer
+          minimum: 0
+          description: Número total de tarefas disponíveis
+          example: 42
+        page:
+          type: integer
+          minimum: 0
+          description: Página atual (0-based)
+          example: 0
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Tamanho da página
+          example: 10
