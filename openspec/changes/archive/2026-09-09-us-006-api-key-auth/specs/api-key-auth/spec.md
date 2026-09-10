@@ -1,10 +1,4 @@
-# api-key-auth Specification
-
-## Purpose
-
-Autenticação mínima via API Key no header `x-api-key` — proteção global de todos os endpoints da API de tarefas. Cobre US-006.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Segurança global via API Key
 O sistema SHALL exigir autenticação via API Key em todos os endpoints da API de tarefas por padrão através de um guard global (`ApiKeyGuard`), permitindo que rotas públicas sejam explicitamente liberadas através do decorator `@Public()`. A spec OpenAPI MUST definir `securitySchemes` com `ApiKeyAuth` (type `apiKey`, in `header`, name `x-api-key`) e aplicá-lo globalmente.
@@ -24,14 +18,3 @@ O sistema SHALL exigir autenticação via API Key em todos os endpoints da API d
 #### Scenario: Rota pública com decorator @Public
 - **WHEN** uma requisição é enviada para uma rota decorada com `@Public()`, mesmo sem header `x-api-key`
 - **THEN** o sistema libera o acesso sem exigir autenticação
-
-### Requirement: SecuritySchemes na spec OpenAPI
-A spec OpenAPI MUST definir o componente `securitySchemes` com `ApiKeyAuth` e aplicar `security` globalmente para que todos os endpoints herdem a exigência de autenticação.
-
-#### Scenario: Definição de securitySchemes
-- **WHEN** a spec OpenAPI é validada
-- **THEN** `components.securitySchemes.ApiKeyAuth` MUST existir com `type: apiKey`, `in: header`, `name: x-api-key`
-
-#### Scenario: Security global aplicada
-- **WHEN** a spec OpenAPI é validada
-- **THEN** o campo `security` de nível raiz MUST conter `[{ ApiKeyAuth: [] }]`
