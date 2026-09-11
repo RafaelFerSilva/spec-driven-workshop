@@ -1,79 +1,157 @@
 # Workshop: Spec-Driven Development na Prática
 
-Tutorial reproduzível que demonstra, passo a passo, como construir uma API REST usando Spec-Driven Development com OpenSpec, NestJS, Fastify e Drizzle ORM.
+Tutorial reproduzível que demonstra, passo a passo, como construir uma API REST usando **Spec-Driven Development** com **OpenSpec**, **NestJS 11**, **Express**, **Drizzle ORM**, **Biome**, **Vitest** e **Playwright**.
 
-> **Objetivo**: Ao final deste workshop, o time será capaz de aplicar o fluxo **US → Spec → Código → Testes** em qualquer projeto, usando OpenSpec para rastrear cada decisão.
+> **Objetivo**: Ao final deste workshop, o time de engenharia será capaz de aplicar o fluxo **US → Spec → Código → Testes** em qualquer projeto, usando OpenSpec para rastrear cada decisão arquitetural e funcional com rastreabilidade total.
+
+---
+
+## 🧠 O Que é Spec-Driven Development (SDD)?
+
+### 1. Conceito e Filosofia
+
+**Spec-Driven Development (Desenvolvimento Orientado por Especificação)** é uma metodologia de engenharia de software onde a **especificação técnica, funcional e comportamental atua como a Fonte Única da Verdade (SSOT)** *antes* que o código de produção seja implementado.
+
+No modelo tradicional (*Code-First*), o código é escrito diretamente e a documentação é tratada como obrigação posterior (ou negligenciada), tornando-se obsoleta quase de imediato e gerando o clássico problema de *split-brain* entre a visão de produto, a arquitetura planejada e o sistema real em produção.
+
+No **SDD**, o paradigma se inverte:
+
+```text
+  TRADICIONAL (Code-First):
+  Requisito Vago ──► Código ──► Testes Ajustados ao Código ──► Documentação Obsoleta ❌
+
+  SPEC-DRIVEN DEVELOPMENT (Spec-First):
+  User Story ──► Especificação Formal ──► Código Fiel à Spec ──► Testes Validando a Spec ✅
+                       ▲                                                    │
+                       └───────────── Verificação Contínua ─────────────────┘
+```
+
+### 2. Objetivos Centrais do SDD
+
+- **Contrato Imutável e Transparente**: Alinha Produto, Arquitetura, Engenharia e QA sob uma linguagem técnica inequívoca antes de investir esforço em codificação.
+- **Rastreabilidade Total Ponta a Ponta**: Cada linha de código, endpoint e teste possui rastreabilidade direta para a especificação formal (`openspec/specs/`) e a User Story (`x-us-id`).
+- **Eliminação de Ambiguidade e Retrabalho**: Suposições e lacunas de negócio são resolvidas na fase de proposta e design, evitando refatorações estruturais caras após o código pronto.
+- **Desenvolvimento Paralelo Desacoplado**: Engenheiros de front-end e QA podem criar mocks, suítes de testes e contratos de integração imediatamente a partir da spec, sem esperar pela conclusão do back-end.
+
+### 3. Aplicações no Mundo Real
+
+- **APIs REST e Microsserviços**: Contratos rigorosos de entrada/saída (OpenAPI), validação defensiva e tratamento padronizado de erros.
+- **Sistemas Críticos e Auditáveis**: Histórico durável de quando, por que e como cada regra de negócio foi alterada ou introduzida no repositório.
+- **Engenharia com Agentes de IA (Agentic Pair Programming)**: LLMs operam com precisão exponencial quando delimitadas por especificações formais, eliminando alucinações e desvios de arquitetura.
+
+### 4. O Fluxo OpenSpec no Ciclo de Vida do Projeto
+
+Neste projeto, o **OpenSpec** é o motor que orquestra o SDD. O ciclo de vida de qualquer alteração técnica ou de negócio segue 4 fases atômicas:
+
+```text
+  ┌────────────────┐     ┌────────────────┐     ┌────────────────┐     ┌────────────────┐
+  │  /opsx-explore │ ──► │  /opsx-propose │ ──► │  /opsx-apply   │ ──► │  /opsx-archive │
+  └────────────────┘     └────────────────┘     └────────────────┘     └────────────────┘
+      EXPLORAR                 PROPOR                 APLICAR                ARQUIVAR
+   Entendimento do       Criação de proposal,    Implementação do       Sincronização com
+   estado atual e        design, specs delta     código e suíte de      as specs canônicas e
+   requisitos pendentes  e tarefas atômicas      testes unit/e2e        arquivo histórico
+```
+
+- **`openspec/specs/`**: Especificações duráveis e canônicas que descrevem as capacidades ativas do sistema.
+- **`openspec/changes/`**: Propostas ativas de mudança, isoladas e rastreáveis até serem completamente testadas e arquivadas.
+- **`openspec/changes/archive/`**: Registro histórico e imutável de todas as decisões e mudanças aplicadas.
 
 ---
 
 ## Pré-requisitos
 
 - Node.js 22+
-- pnpm 10+
-- Docker (para PostgreSQL)
-- Editor com suporte a TypeScript (VS Code, Antigravity IDE, etc.)
+- pnpm 11+
+- Docker (para PostgreSQL via Docker Compose)
+- Editor com suporte a TypeScript (VS Code, Cursor, Antigravity IDE, etc.)
+
+---
+
+## 📖 Fonte da Verdade Arquitetural (SSOT)
+
+Neste projeto, **não mantemos documentações estáticas paralelas** (como `architecture.md` ou manuais duplicados) para evitar o problema de *split-brain*. As decisões de arquitetura e padrões de engenharia são regidos diretamente pela estrutura viva do template:
+
+- **Constituição e Topologia do Projeto:** [`AGENTS.md`](../../AGENTS.md)
+- **Regras de Clean Architecture e DIP:** [`.agents/rules/architecture-rules.md`](../../.agents/rules/architecture-rules.md)
+- **Convenções de Código, Naming e Biome:** [`.agents/rules/code-rules.md`](../../.agents/rules/code-rules.md)
+- **Regras Universais do Projeto:** [`.agents/rules/universal-rules.md`](../../.agents/rules/universal-rules.md)
+- **Guia de Testes (Vitest & Mocking):** [`.agents/skills/testing-guide/SKILL.md`](../../.agents/skills/testing-guide/SKILL.md)
+- **Design de APIs e Documentação:** [`.agents/skills/api-design/SKILL.md`](../../.agents/skills/api-design/SKILL.md)
+- **Padrões Drizzle ORM:** [`.agents/skills/drizzle-patterns/SKILL.md`](../../.agents/skills/drizzle-patterns/SKILL.md)
 
 ---
 
 ## Índice
 
-| Etapa | Título                                                                                       | O que demonstra                                              |
-| ----- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 0     | [Estrutura inicial e User Stories](#etapa-0--estrutura-inicial-e-user-stories)               | Como organizar requisitos e inicializar OpenSpec             |
-| 1     | [Bootstrap do projeto NestJS](#etapa-1--bootstrap-do-projeto-nestjs)                         | Enabler técnico sem US — fluxo OpenSpec com `skip_specs`     |
-| 2     | [Criar a spec OpenAPI](#etapa-2--criar-a-spec-openapi)                                       | Spec-first: contrato antes do código                         |
-| 3     | [Implementar ErrorResponse (US-007)](#etapa-3--implementar-errorresponse-us-007)             | Tratamento global de erros como primeiro passo               |
-| 4     | [Implementar API Key Guard (US-006)](#etapa-4--implementar-api-key-guard-us-006)             | Segurança transversal com Secure by Default                  |
-| 5     | [Implementar criação de tarefa (US-001)](#etapa-5--implementar-criação-de-tarefa-us-001)     | Rich Domain Model, Clean Architecture e testes de propagação |
-| 6     | [Implementar consulta de tarefa (US-003)](#etapa-6--implementar-consulta-de-tarefa-us-003)   | Leitura unitária e soft delete na query                      |
-| 7     | [Implementar listagem paginada (US-002)](#etapa-7--implementar-listagem-paginada-us-002)     | Paginação, coerção de tipos e contagem atômica               |
-| 8     | [Implementar atualização parcial (US-004)](#etapa-8--implementar-atualização-parcial-us-004) | PATCH semântico, no-op e revalidação de invariantes          |
-| 9     | [Implementar remoção de tarefa (US-005)](#etapa-9--implementar-remoção-de-tarefa-us-005)     | Soft delete como regra de negócio no domínio                 |
-| 10    | [Testes de jornada com Playwright](#etapa-10--testes-de-jornada-com-playwright)              | Pirâmide completa de testes com API black-box                |
-| 11    | [Validação final](#etapa-11--validação-final)                                                | Quality gates e métricas de qualidade                        |
+| Etapa | Título | Comando OpenSpec | O que demonstra |
+| :---: | ------ | :--------------: | --------------- |
+| 0 | [Estrutura inicial e User Stories](#etapa-0--estrutura-inicial-e-user-stories) | `/opsx-explore` | Como organizar requisitos de negócio e inicializar o OpenSpec |
+| 1 | [Bootstrap do projeto NestJS](#etapa-1--bootstrap-do-projeto-nestjs) | `/opsx-propose nestjs-bootstrap` | Enabler técnico sem US — fluxo OpenSpec com `skip_specs` |
+| 2 | [Criar a spec OpenAPI](#etapa-2--criar-a-spec-openapi) | `/opsx-propose task-api-spec` | Spec-first: contrato antes do código |
+| 3 | [Implementar ErrorResponse (US-007)](#etapa-3--implementar-errorresponse-us-007) | `/opsx-propose us-007-error-response` | Tratamento global de erros padronizado no template |
+| 4 | [Implementar API Key Guard (US-006)](#etapa-4--implementar-api-key-guard-us-006) | `/opsx-propose us-006-api-key-auth` | Segurança transversal com Secure by Default (`APP_GUARD`) |
+| 5 | [Implementar criação de tarefa (US-001)](#etapa-5--implementar-criação-de-tarefa-us-001) | `/opsx-propose us-001-create-task` | Rich Domain Model, Clean Architecture, DIP e testes de propagação |
+| 6 | [Implementar consulta de tarefa (US-003)](#etapa-6--implementar-consulta-de-tarefa-us-003) | `/opsx-propose us-003-get-task` | Leitura unitária, pipes de UUID e soft delete na query |
+| 7 | [Implementar listagem paginada (US-002)](#etapa-7--implementar-listagem-paginada-us-002) | `/opsx-propose us-002-list-tasks` | Paginação 0-based, contagem atômica e DTOs de consulta |
+| 8 | [Implementar atualização parcial (US-004)](#etapa-8--implementar-atualização-parcial-us-004) | `/opsx-propose us-004-update-task` | PATCH semântico, no-op e revalidação de invariantes no domínio |
+| 9 | [Implementar remoção de tarefa (US-005)](#etapa-9--implementar-remoção-de-tarefa-us-005) | `/opsx-propose us-005-delete-task` | Soft delete como regra de negócio e interrupção de efeitos colaterais |
+| 10 | [Testes de jornada com Playwright](#etapa-10--testes-de-jornada-com-playwright) | `/opsx-propose playwright-e2e-journey` | Pirâmide completa de testes com API black-box sobre HTTP real |
+| 11 | [Validação final](#etapa-11--validação-final) | `openspec validate --specs` | Quality gates com Biome, Vitest, Playwright e OpenSpec |
 
 ---
 
 ## Etapa 0 — Estrutura inicial e User Stories
 
-**Objetivo**: Criar o repositório com a documentação base e inicializar o OpenSpec.
+**Objetivo**: Conhecer o backlog de requisitos de negócio e inicializar o ecossistema OpenSpec.
 
 ### O que o PO entrega
 
-O PO escreve 7 User Stories cobrindo o MVP, armazenadas em `docs/`:
+O PO escreve 7 User Stories cobrindo o MVP de Gestão de Tarefas, armazenadas em `docs/`:
 
-| US              | Título                         | Tipo        |
-| --------------- | ------------------------------ | ----------- |
-| US-001 a US-005 | CRUD de tarefas                | Funcional   |
-| US-006          | Autenticação via API Key       | Transversal |
-| US-007          | Respostas de erro padronizadas | Transversal |
+| US | Título | Tipo | Arquivo |
+| -- | ------ | ---- | ------- |
+| US-001 a US-005 | CRUD de tarefas | Funcional | [user-stories.md](../user-stories.md) |
+| US-006 | Autenticação via API Key | Transversal | [us-006-autenticacao-api-key.md](../us-006-autenticacao-api-key.md) |
+| US-007 | Respostas de erro padronizadas | Transversal | [us-007-padronizar-erros.md](../us-007-padronizar-erros.md) |
 
 Cada US segue o formato: ator, objetivo, benefício, critérios de aceitação e notas de negócio.
 
-### Inicializar o OpenSpec
+### Estrutura do OpenSpec
+
+Para este projeto utilizamos o https://openspec.dev/ como ferramenta para execução do spec driven development
+
+> OpenSpec é uma estrutura leve e configurável para criar e gerenciar especificações de software.
+
+> Com o OpenSpec, você define em uma especificação o que deseja construir e mantém sua equipe e os desenvolvedores alinhados à medida que o trabalho evolui. Nós ajudamos você a refinar os requisitos, validar se eles descrevem a coisa certa e verificar se a implementação corresponde.
+
+> Em essência, o OpenSpec ajuda você a construir a coisa certa e a construí-la da maneira correta .
+
+Instalação Global
 
 ```bash
-npx @fission-ai/openspec@latest init --tools antigravity --language pt-br --no-animation .
+pnpm add -g @fission-ai/openspec@latest
 ```
 
-O que o `init` cria:
+Inicialização no projeto
 
-| Diretório                     | Propósito                        |
-| ----------------------------- | -------------------------------- |
-| `openspec/config.yaml`        | Configuração do OpenSpec         |
-| `openspec/specs/`             | Specs de capacidades (persistem) |
-| `openspec/changes/`           | Change proposals (ciclo de vida) |
-| `.agents/skills/openspec-*/`  | Skills para AI agents            |
-| `.agents/workflows/opsx-*.md` | Workflows correspondentes        |
+```bash
+openspec init
+```
 
-### Conceitos-chave
+O OpenSpec no projeto é configurado em `openspec/config.yaml`:
 
-- **Spec** (`openspec/specs/`): Documentação de uma capacidade do sistema. Persiste após a mudança.
-- **Change** (`openspec/changes/<nome>/`): Proposta de mudança com artifacts (proposal, design, tasks). Ciclo: propor → aplicar → verificar → arquivar.
+| Diretório / Arquivo | Propósito |
+| ------------------- | --------- |
+| `openspec/config.yaml` | Configurações, stack do template, regras por artefato |
+| `openspec/specs/` | Especificações duráveis de capacidades do sistema |
+| `openspec/changes/` | Change proposals ativas (ciclo: propor → aplicar → verificar → arquivar) |
+| `.agents/skills/` | Skills do assistente para automação do fluxo |
+| `.agents/workflows/` | Workflows executáveis (`/opsx-explore`, `/opsx-propose`, etc.) |
 
 ### Explorar o estado do projeto
 
-Após o `init`, o primeiro passo do fluxo é **explorar** — analisar o que existe no repositório antes de propor qualquer mudança:
+O primeiro passo do fluxo Spec-Driven é **explorar** — analisar o que existe no repositório antes de propor qualquer mudança:
 
 ```bash
 # Com AI agent:
@@ -81,26 +159,18 @@ Após o `init`, o primeiro passo do fluxo é **explorar** — analisar o que exi
 
 # O explore analisa:
 # - USs em docs/ → identifica requisitos pendentes
-# - Specs em openspec/specs/ → identifica lacunas de especificação
-# - Código em src/ → identifica o que já foi implementado
-# - Testes em tests/ → identifica cobertura existente
+# - Specs em openspec/specs/ → identifica capacidades existentes
+# - Código em src/ → identifica o que já existe de exemplo e infraestrutura
+# - Testes em tests/ e src/ → identifica cobertura existente
 ```
-
-**Resultado esperado**: Um relatório listando as 7 USs, indicando que não existe código-fonte, especificação OpenAPI, nem infraestrutura — tudo precisa ser criado.
-
-> Este é o momento em que o dev forma a visão completa do trabalho. O `explore` evita propostas cegas — antes de propor, você sabe exatamente onde está e para onde precisa ir.
-
-### 💡 Lição
-
-> Antes de escrever qualquer código, invista tempo nas User Stories **e** inicialize as ferramentas de spec. O `openspec init` cria a estrutura, e o `/opsx-explore` dá a visão completa do estado atual — sem eles, não há como rastrear changes ou planejar com segurança.
 
 ---
 
 ## Etapa 1 — Bootstrap do projeto NestJS
 
-**Objetivo**: Criar a base técnica (projeto compilando, testes rodando, lint configurado).
+**Objetivo**: Validar a base técnica do template (compilação, linter com Biome, testes e banco).
 
-> O bootstrap é um **enabler técnico**, não uma funcionalidade. Mesmo assim, passa pelo fluxo OpenSpec com `skip_specs: true`.
+> O bootstrap inicial de tooling ou infraestrutura é um **enabler técnico**, não uma funcionalidade de negócio. Mesmo assim, ele passa pelo fluxo OpenSpec usando `skip_specs: true`.
 
 ### Fluxo OpenSpec para enablers
 
@@ -110,92 +180,67 @@ Após o `init`, o primeiro passo do fluxo é **explorar** — analisar o que exi
 /opsx-apply
 /opsx-archive
 
-# Manualmente:
+# Manualmente via CLI:
 openspec new change "nestjs-bootstrap"
-# Editar .openspec.yaml → skip_specs: true
+# No .openspec.yaml: skip_specs: true
 # Criar proposal.md, design.md e tasks.md
-# Implementar as tasks
-# Validar e arquivar
+# Aplicar e arquivar
 ```
 
-O `skip_specs: true` declara que esta change não altera comportamento da API. Isso é honesto — não inventamos specs artificiais para infraestrutura.
+O `skip_specs: true` declara formalmente que a mudança não altera capacidades comportamentais da API pública, evitando specs artificiais para infraestrutura.
 
-### O que é configurado
+### A Stack do Template
 
-| Componente             | Ferramenta                                | Decisão relacionada                |
-| ---------------------- | ----------------------------------------- | ---------------------------------- |
-| Package manager + deps | pnpm + package.json                       | —                                  |
-| TypeScript             | Strict mode, path aliases, ES2022         | —                                  |
-| Build                  | SWC via `unplugin-swc`                    | [D-006](../adr/)                   |
-| HTTP                   | NestJS 12 + Fastify 5                     | [D-004](../adr/), [D-005](../adr/) |
-| Testes                 | Vitest (3 perfis: unit, integration, e2e) | [D-003](../adr/), [D-008](../adr/) |
-| Lint                   | ESLint flat config + Prettier             | [D-009](../adr/)                   |
-| Banco                  | Docker Compose com PostgreSQL 15-alpine   | [D-010](../adr/)                   |
-| Swagger                | @nestjs/swagger + @fastify/swagger        | [D-011](../adr/)                   |
+| Componente | Tecnologia | Papel na Arquitetura |
+| ---------- | ---------- | -------------------- |
+| Runtime & Pacotes | Node.js 22+ & pnpm 11+ | Ambiente base com tipagem estrita |
+| Framework & HTTP | NestJS 11 + Express | Camada de apresentação e injeção de dependência |
+| Linter & Formatter | Biome 2.5+ (`pnpm check`) | Linting e formatação ultrarrápidos em ferramenta única |
+| TypeScript | Target ES2023, path alias `@/*` | Mapeamento limpo para `./src/*` |
+| Banco & ORM | PostgreSQL + Drizzle ORM | Schemas tipados e migrations via `drizzle-kit` |
+| Observabilidade | OpenTelemetry + Pino | Traces distribuídos e logs estruturados em JSON |
+| Testes | Vitest + Supertest | Testes unitários e E2E rápidos |
 
-### Validação
+### Validação do Bootstrap
 
 ```bash
-pnpm lint && pnpm build && pnpm test
+pnpm check       # Biome: formatação e linting
+pnpm build       # Compilação NestJS / TypeScript
+pnpm test        # Testes unitários
+pnpm test:e2e    # Testes E2E em memória com Supertest
 ```
-
-### 💡 Lição
-
-> O bootstrap correto economiza horas de debugging. Path aliases, lint e formatação devem funcionar desde o commit zero. E mesmo sem US, o bootstrap passa pelo OpenSpec — o processo funciona para qualquer tipo de mudança.
 
 ---
 
 ## Etapa 2 — Criar a spec OpenAPI
 
-**USs abordadas**: US-006 (securitySchemes) + US-007 (ErrorResponse) + schemas base
+**USs abordadas**: US-006 (securitySchemes) + US-007 (ErrorResponse) + Schemas de Tarefa.
 
-**Objetivo**: Criar o contrato OpenAPI **antes** de qualquer código de negócio.
+**Objetivo**: Criar o contrato OpenAPI **antes** de qualquer implementação de código.
 
 ### Por que a spec vem primeiro?
 
 A spec OpenAPI é o **contrato central** do projeto:
-
-- **Fonte de verdade** para PO, dev, QA e consumidores da API.
-- **Base para validação** — qualquer implementação que contradiga a spec é um bug.
-- **Documentação viva** — o Swagger que o time consulta É o sistema.
+- **Fonte da verdade** para PO, desenvolvedores, QA e clientes.
+- **Defesa de design** — qualquer implementação em desacordo com a spec é considerada defeito.
+- **Documentação viva** — servida com interface interativa via Scalar/Swagger em `/api/docs`.
 
 ### Fluxo OpenSpec
 
 ```bash
-/opsx-propose task-api-spec    # Propor a spec completa
-/opsx-apply                    # Implementar (criar spec/open-spec.yaml)
-/opsx-archive                  # Arquivar a change
+/opsx-propose task-api-spec
+/opsx-apply
+/opsx-archive
 ```
 
 ### O que a spec define
 
-| Componente    | Conteúdo                                                                                              |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| **Schemas**   | `Task`, `CreateTaskInput`, `UpdateTaskInput`, `ErrorResponse`, `PaginatedTasksResponse`, `TaskStatus` |
-| **Security**  | `ApiKeyAuth` (header `x-api-key`) global                                                              |
-| **Paths**     | 5 endpoints com `x-us-id` para rastreabilidade                                                        |
-| **Responses** | Sucesso + todos os erros com exemplos concretos                                                       |
-
-### Decisões tomadas nesta etapa
-
-| Decisão                  | Escolha      | Por quê?                             |
-| ------------------------ | ------------ | ------------------------------------ |
-| Soft delete (US-005)     | `deletedAt`  | Audit trail; padrão da referência    |
-| API Key ausente (US-006) | HTTP 401     | RFC 7235: ausência = não autenticado |
-| Formato timestamps       | ISO 8601 UTC | Padrão OpenAPI; legível              |
-| Paginação                | 0-based      | Alinhado com US-002                  |
-
-### Checklist de validação da spec
-
-- [ ] Cada US possui path correspondente com `x-us-id`?
-- [ ] Constraints de validação (minLength, enum, etc.) estão na spec?
-- [ ] Todos os status codes (sucesso + erro) documentados?
-- [ ] `ErrorResponse` referenciado em todas as 4xx/5xx?
-- [ ] `security` global aplicada?
-
-### 💡 Lição
-
-> A spec nos forçou a responder perguntas (401 vs 403? soft delete? paginação 0-based?) que, sem spec, só apareceriam no code review ou em produção.
+| Componente | Conteúdo |
+| ---------- | -------- |
+| **Schemas** | `Task`, `CreateTaskInput`, `UpdateTaskInput`, `ErrorResponse`, `PaginatedTasksResponse`, `TaskStatus` |
+| **Security** | `ApiKeyAuth` (header `x-api-key`) globalmente aplicado |
+| **Paths** | Endpoints `/tasks` com anotação de rastreabilidade `x-us-id: US-001` |
+| **Responses** | Exemplos de status codes de sucesso (200, 201, 204) e erro (400, 401, 404, 500) |
 
 ---
 
@@ -203,33 +248,50 @@ A spec OpenAPI é o **contrato central** do projeto:
 
 **US**: [us-007-padronizar-erros.md](../us-007-padronizar-erros.md)
 
-**Objetivo**: Padronizar **todas** as respostas de erro da API em um formato único.
+**Objetivo**: Padronizar todas as respostas de erro da API no formato oficial do template.
 
-### Fluxo spec-driven
+### Fluxo OpenSpec
 
-1. Verificar schema `ErrorResponse` na spec.
-2. Implementar `AllExceptionsFilter` global.
-3. Criar DTO `ErrorResponseDto`.
-4. Testes unitários para o filter.
+```bash
+# Com AI agent:
+/opsx-propose us-007-error-response
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-007-error-response"
+# Implementar tarefas de openspec/changes/us-007-error-response/tasks.md
+openspec archive --change "us-007-error-response"
+```
+
+### Padrão de Resposta do Template
+
+O template padroniza respostas de erro em JSON estruturado com código semântico (`code`):
+```json
+{
+  "code": "TASK_NOT_FOUND",
+  "message": "Task with id 550e8400-e29b-41d4-a716-446655440000 was not found",
+  "details": {
+    "taskId": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
 
 ### O que é criado
 
-| Camada  | Arquivo                                                  | Responsabilidade          |
-| ------- | -------------------------------------------------------- | ------------------------- |
-| Shared  | `src/shared/dto/error-response.dto.ts`                   | DTO de resposta de erro   |
-| Adapter | `src/adapters/api/filters/all-exceptions.filter.ts`      | Catch-all de exceções     |
-| Testes  | `src/adapters/api/filters/all-exceptions.filter.spec.ts` | 12 testes unitários       |
-| Config  | `src/app.module.ts`                                      | Registro via `APP_FILTER` |
+| Camada | Arquivo | Responsabilidade |
+| ------ | ------- | ---------------- |
+| Domain (Exception) | `src/domain/exception/error-response.interface.ts` | Interface `{ code, message, details? }` |
+| Domain (Exception) | `src/domain/exception/domain.exception.ts` | Classe base para erros de negócio com `errorCode` |
+| Adapter (API) | `src/adapters/api/response/error-response.dto.ts` | DTO Swagger/Scalar para documentação de erros |
+| Adapter (API) | `src/adapters/api/filters/global-exception.filter.ts` | Filter global que captura exceções e formata resposta |
+| Testes | `src/adapters/api/filters/global-exception.filter.spec.ts` | Testes unitários cobrindo erros de domínio, HTTP e 500 |
+| Módulo | `src/app.module.ts` | Registro global via `APP_FILTER` |
 
-O `AllExceptionsFilter` trata 3 tipos de exceção:
-
-1. `DomainException` → mapeia para `ErrorResponse` com code e status.
-2. `HttpException` (NestJS) → extrai mensagem e details.
-3. Exceções genéricas → `INTERNAL_SERVER_ERROR` (500).
-
-### 💡 Lição
-
-> Comece pelo tratamento de erros. Quando o formato de erro está padronizado desde o início, todos os endpoints seguem o mesmo contrato automaticamente.
+O filter intercepta:
+1. `DomainException` (domínio) → mapeia para o status HTTP e payload `{ code, message, details }`.
+2. `HttpException` (NestJS/ValidationPipe) → formata as mensagens de validação.
+3. Exceções não tratadas → retorna 500 (`INTERNAL_SERVER_ERROR`) registrando o log estruturado com Pino.
 
 ---
 
@@ -237,36 +299,45 @@ O `AllExceptionsFilter` trata 3 tipos de exceção:
 
 **US**: [us-006-autenticacao-api-key.md](../us-006-autenticacao-api-key.md)
 
-**Objetivo**: Proteger **todos** os endpoints da API com autenticação via API Key.
+**Objetivo**: Proteger os endpoints com autenticação via API Key seguindo o princípio **Secure by Default**.
+
+### Fluxo OpenSpec
+
+```bash
+# Com AI agent:
+/opsx-propose us-006-api-key-auth
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-006-api-key-auth"
+# Implementar tarefas de openspec/changes/us-006-api-key-auth/tasks.md
+openspec archive --change "us-006-api-key-auth"
+```
 
 ### Padrão: Secure by Default
 
-O `ApiKeyGuard` é registrado globalmente via `APP_GUARD`. Nenhum endpoint novo fica acidentalmente desprotegido.
-
-Para rotas públicas (como Swagger), usamos o decorator `@Public()` com `Reflector` — uma exceção explícita e controlada.
+O `ApiKeyGuard` é registrado globalmente no `AppModule` via `APP_GUARD`. Nenhuma nova rota fica acidentalmente pública. Rotas públicas (como documentação `/api/docs` e health checks `/actuator/health`) usam o decorator explícito `@Public()` com `Reflector`.
 
 ### O que é criado
 
-| Camada  | Arquivo                                         | Responsabilidade                |
-| ------- | ----------------------------------------------- | ------------------------------- |
-| Adapter | `src/adapters/api/guards/api-key.guard.ts`      | Validação do header `x-api-key` |
-| Adapter | `src/adapters/api/guards/public.decorator.ts`   | Decorator `@Public()`           |
-| Testes  | `src/adapters/api/guards/api-key.guard.spec.ts` | 4 testes unitários              |
-| Config  | `.env` / `.env.example`                         | `API_KEY=my-dev-api-key-123`    |
+| Camada | Arquivo | Responsabilidade |
+| ------ | ------- | ---------------- |
+| Adapter (API) | `src/adapters/api/guards/api-key.guard.ts` | Validação do header `x-api-key` contra `process.env.API_KEY` |
+| Adapter (API) | `src/adapters/api/guards/public.decorator.ts` | Decorator `@Public()` |
+| Testes | `src/adapters/api/guards/api-key.guard.spec.ts` | Testes unitários (sem header, chave inválida, chave válida, rota pública) |
+| Config | `.env` / `.env.example` | Definição da variável `API_KEY` |
 
-### Fluxo do Guard
-
+```text
+Requisição HTTP
+      │
+      ▼
+ApiKeyGuard (APP_GUARD)
+  ├── Possui @Public()? ──────► Liberar execução
+  ├── Sem x-api-key? ─────────► 401 Unauthorized
+  ├── x-api-key inválida? ────► 401 Unauthorized
+  └── x-api-key válida ───────► Autorizar requisição
 ```
-Requisição → ApiKeyGuard
-  ├── @Public()? → Liberar
-  ├── x-api-key ausente? → DomainException(UNAUTHORIZED, 401)
-  ├── x-api-key inválida? → DomainException(INVALID_API_KEY, 401)
-  └── x-api-key válida → Autorizar
-```
-
-### 💡 Lição
-
-> Guards transversais registrados como `APP_GUARD` protegem a aplicação inteira por padrão. O `@Public()` com `Reflector` oferece uma saída explícita para rotas públicas.
 
 ---
 
@@ -274,36 +345,71 @@ Requisição → ApiKeyGuard
 
 **US**: [us-001-criar-tarefa.md](../us-001-criar-tarefa.md)
 
-**Objetivo**: Primeira US de negócio — estabelece os padrões de Rich Domain Model e Clean Architecture.
-
-### O que esta etapa ensina
-
-Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obrigatórios:
-
-1. **Rich Domain Model**: O construtor da entidade `Task` valida invariantes (título 3-100 caracteres, descrição max 2000, status válido) lançando `DomainException`. Suíte `*.model.spec.ts` colocalizada testa 100% dessas condições.
-
-2. **Propagação de Erros nos Use Cases**: Testes verificam que erros do repositório são propagados sem supressão silenciosa, e que dados inválidos abortam o fluxo antes de tocar a persistência.
-
-### Camadas implementadas
-
-| Camada          | O que é criado                                                                                |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Domínio**     | Entidade `Task`, `TaskStatus`, port `TaskRepository`, `CreateTaskUseCase`                     |
-| **Adaptadores** | `DrizzleTaskRepository`, `CreateTaskDto`, `TaskResponseDto`, `TasksController`, `TasksModule` |
-| **Schema**      | Tabela `tasks` com UUID, timestamps, soft delete e enum `task_status`                         |
-| **Testes**      | Unitários (model, use case, controller, repository) + E2E (4 cenários)                        |
+**Objetivo**: Primeira US de negócio — estabelece os padrões de **Rich Domain Model**, Clean Architecture e **Inversão de Dependência (DIP)**.
 
 ### Fluxo OpenSpec
 
 ```bash
+# Com AI agent:
 /opsx-propose us-001-create-task
-/opsx-apply       # Implementar com base na spec
-/opsx-archive     # Arquivar após validação
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-001-create-task"
+# Implementar tarefas de openspec/changes/us-001-create-task/tasks.md
+openspec archive --change "us-001-create-task"
 ```
 
-### 💡 Lição
+### Padrões Fundamentais Desta Etapa
 
-> A spec e os DTOs blindam a borda HTTP, mas o domínio se auto-defende. Modelos anêmicos são proibidos — a entidade é responsável por garantir que nunca existirá em estado inválido.
+1. **Rich Domain Model (Não Anêmico)**:
+   - A classe de domínio `Task` (`src/domain/model/task.model.ts`) valida suas próprias invariantes no construtor.
+   - Proibido importar decorators de framework no domínio.
+   - Suíte unitária `task.model.spec.ts` com **100% de cobertura de invariantes**.
+
+2. **DIP com Classes Abstratas**:
+   - O contrato `TaskRepository` (`src/domain/ports/repository/task.repository.ts`) é uma **classe abstrata**:
+   ```typescript
+   export abstract class TaskRepository {
+     abstract create(task: Task): Promise<Task>
+     abstract findById(id: string): Promise<Task | null>
+     abstract findAll(params: FindAllTasksParams): Promise<PaginatedResult<Task>>
+     abstract update(task: Task): Promise<Task>
+     abstract delete(id: string): Promise<void>
+   }
+   ```
+   - O repositório concreto `TaskRepositoryImpl` em `src/adapters/database/repository/task.repository.impl.ts` implementa essa classe usando Drizzle ORM.
+   - No `TasksModule`, o binding é direto sem tokens manuais:
+   ```typescript
+   {
+     provide: TaskRepository,
+     useClass: TaskRepositoryImpl,
+   }
+   ```
+
+3. **Propagação de Erros nos Use Cases**:
+   - `CreateTaskUseCase` valida que falhas de persistência são propagadas e que dados inválidos abortam o fluxo antes de tocar o banco.
+
+### Camadas Criadas
+
+```text
+src/
+├── domain/
+│   ├── model/task.model.ts + task.model.spec.ts
+│   ├── ports/repository/task.repository.ts
+│   └── usecase/create-task.usecase.ts + create-task.usecase.spec.ts
+└── adapters/
+    ├── database/
+    │   ├── schemas/task.schema.ts
+    │   └── repository/task.repository.impl.ts
+    ├── api/tasks/
+    │   ├── task.controller.ts
+    │   ├── request/create-task.dto.ts
+    │   └── response/task.response.dto.ts
+    └── tasks/
+        └── tasks.module.ts
+```
 
 ---
 
@@ -311,26 +417,28 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 **US**: [us-003-consultar-tarefa.md](../us-003-consultar-tarefa.md)
 
-**Objetivo**: Implementar a consulta individual validando o ciclo de leitura unitária.
+**Objetivo**: Implementar consulta unitária por ID validando leitura e soft delete.
+
+### Fluxo OpenSpec
+
+```bash
+# Com AI agent:
+/opsx-propose us-003-get-task
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-003-get-task"
+# Implementar tarefas de openspec/changes/us-003-get-task/tasks.md
+openspec archive --change "us-003-get-task"
+```
 
 ### O que esta etapa ensina
 
-- Extensão incremental do port `TaskRepository` com `findById`.
-- Soft delete respeitado na query: `isNull(tasks.deletedAt)` no SQL.
-- Validação de UUID na borda via `ParseUUIDPipe({ version: '4' })`.
-- Exceção de domínio `TASK_NOT_FOUND` no use case (não no controller).
-
-### Camadas implementadas
-
-| Camada          | O que é criado/modificado                                      |
-| --------------- | -------------------------------------------------------------- |
-| **Domínio**     | `GetTaskByIdUseCase` + testes (sucesso, 404, propagação)       |
-| **Adaptadores** | `findById` no repositório, rota `GET /tasks/:id` no controller |
-| **Testes**      | E2E: 200, 404, 400 (UUID inválido), 401                        |
-
-### 💡 Lição
-
-> Implementar a consulta individual logo após a criação valida o ciclo de leitura antes da complexidade de paginação. O `ParseUUIDPipe` barra parâmetros malformados sem desperdiçar consultas ao banco.
+- Extensão do `TaskRepository` com o método `findById(id: string)`.
+- Respeito ao soft delete na query Drizzle: `and(eq(tasks.id, id), isNull(tasks.deletedAt))`.
+- Validação rápida na borda via `new ParseUUIDPipe({ version: '4' })`.
+- Exceção de negócio `TaskNotFoundException` disparada pelo use case caso a tarefa não exista ou esteja deletada (resultando em 404 Not Found).
 
 ---
 
@@ -338,25 +446,36 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 **US**: [us-002-listar-tarefas.md](../us-002-listar-tarefas.md)
 
-**Objetivo**: Implementar a listagem com paginação, ordenação e contagem atômica.
+**Objetivo**: Implementar listagem com paginação 0-based, contagem atômica e defaults defensivos.
+
+### Fluxo OpenSpec
+
+```bash
+# Com AI agent:
+/opsx-propose us-002-list-tasks
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-002-list-tasks"
+# Implementar tarefas de openspec/changes/us-002-list-tasks/tasks.md
+openspec archive --change "us-002-list-tasks"
+```
 
 ### O que esta etapa ensina
 
-- **Coerção de query strings**: Fastify entrega query params como strings. `@Type(() => Number)` no DTO com `class-transformer` resolve antes da validação numérica.
-- **Paginação atômica**: Consulta dupla no Drizzle (count agregado + select paginado) evita inconsistência entre total e itens.
-- **Defaults defensivos**: `page: 0`, `pageSize: 10` aplicados no use case.
-
-### Camadas implementadas
-
-| Camada          | O que é criado/modificado                                                                     |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Domínio**     | `FindAllTasksParams`, `PaginatedResult<T>`, `ListTasksUseCase`                                |
-| **Adaptadores** | `findAll` no repositório, `ListTasksQueryDto`, `PaginatedTasksResponseDto`, rota `GET /tasks` |
-| **Testes**      | E2E: 7 cenários (lista vazia, paginação, defaults, validação)                                 |
-
-### 💡 Lição
-
-> Paginação esconde armadilhas: coerção de tipos em query strings, exclusão de soft-deleteds no totalizador, e defaults que devem estar definidos na spec antes de codificar.
+- **DTO de Consulta (`ListTasksQueryDto`)**: Uso de `class-transformer` com `@Type(() => Number)` e `class-validator` com `@IsOptional()`, `@Min(0)`, `@Max(100)`.
+- **Defaults defensivos no UseCase**: `page = 0`, `pageSize = 10`.
+- **Contagem Atômica no Drizzle**: Consulta agregando `count()` e busca paginada com `limit()` e `offset()`, filtrando tarefas com `isNull(tasks.deletedAt)`.
+- **DTO de Saída (`PaginatedTasksResponseDto`)**:
+  ```typescript
+  export class PaginatedTasksResponseDto {
+    items: TaskResponseDto[]
+    total: number
+    page: number
+    pageSize: number
+  }
+  ```
 
 ---
 
@@ -364,25 +483,29 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 **US**: [us-004-atualizar-tarefa.md](../us-004-atualizar-tarefa.md)
 
-**Objetivo**: Implementar PATCH semântico com revalidação de invariantes.
+**Objetivo**: Implementar PATCH semântico com revalidação das invariantes de domínio.
+
+### Fluxo OpenSpec
+
+```bash
+# Com AI agent:
+/opsx-propose us-004-update-task
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-004-update-task"
+# Implementar tarefas de openspec/changes/us-004-update-task/tasks.md
+openspec archive --change "us-004-update-task"
+```
 
 ### O que esta etapa ensina
 
-- **Método `update()` na entidade rica**: Retorna uma nova instância revalidando todas as invariantes. Impede que atualizações parciais quebrem regras de negócio.
-- **Semântica de null vs undefined**: Campo omitido (`undefined`) = não alterar. Campo explicitamente `null` = limpar valor.
-- **No-op com corpo vazio `{}`**: Se nenhum campo é enviado, o use case retorna a entidade sem tocar o banco, preservando o `updatedAt` real.
-
-### Camadas implementadas
-
-| Camada          | O que é criado/modificado                                         |
-| --------------- | ----------------------------------------------------------------- |
-| **Domínio**     | `UpdateTaskProps`, método `task.update()`, `UpdateTaskUseCase`    |
-| **Adaptadores** | `update` no repositório, `UpdateTaskDto`, rota `PATCH /tasks/:id` |
-| **Testes**      | 10 testes unitários do modelo + 7 do use case + 10 e2e            |
-
-### 💡 Lição
-
-> PATCH semântico exige cuidado com a distinção entre campo omitido e anulação explícita. O Rich Domain Model garante que a entidade nunca transite em estado inválido, mesmo em atualizações parciais.
+- **Método `task.update()` na entidade rica**: Em vez de modificar campos soltos no controller, a própria entidade recebe as novas propriedades, valida as invariantes e atualiza o timestamp `updatedAt`.
+- **Semântica de null vs undefined**:
+  - `undefined` (campo omitido no JSON): mantém o valor atual.
+  - `null`: limpa o valor (por exemplo, na descrição opcional).
+- **Otimização No-op**: Se nenhum campo foi modificado, o use case retorna a tarefa atual sem executar comandos desnecessários no banco de dados.
 
 ---
 
@@ -392,104 +515,135 @@ Esta é a etapa mais importante do workshop. Ela estabelece dois padrões obriga
 
 **Objetivo**: Implementar soft delete como regra de negócio no domínio.
 
+### Fluxo OpenSpec
+
+```bash
+# Com AI agent:
+/opsx-propose us-005-delete-task
+/opsx-apply
+/opsx-archive
+
+# Manualmente via CLI:
+openspec new change "us-005-delete-task"
+# Implementar tarefas de openspec/changes/us-005-delete-task/tasks.md
+openspec archive --change "us-005-delete-task"
+```
+
 ### O que esta etapa ensina
 
-- **Soft delete no Rich Domain Model**: Método `task.delete()` marca `deletedAt` e `updatedAt`, e valida que a tarefa não foi excluída anteriormente.
-- **Interrupção de efeitos colaterais**: Se a entidade não é encontrada ou já foi excluída, o repositório **não é acionado**.
-
-### Camadas implementadas
-
-| Camada          | O que é criado/modificado                                                       |
-| --------------- | ------------------------------------------------------------------------------- |
-| **Domínio**     | Método `task.delete()` + testes, `DeleteTaskUseCase`                            |
-| **Adaptadores** | `delete` no repositório (SQL update), rota `DELETE /tasks/:id` (204 No Content) |
-| **Testes**      | 3 unitários do modelo + 5 do use case + 6 e2e                                   |
-
-### 💡 Lição
-
-> Soft delete é uma decisão de negócio. Implementá-lo como método do Rich Domain Model garante que entidades excluídas não sofram novas mutações. A interrupção de efeitos colaterais no use case garante que o banco nunca é acionado desnecessariamente.
+- **Soft Delete no Domínio**: Método `task.delete()` marca `deletedAt = new Date()` e valida que uma tarefa já excluída não pode ser excluída novamente.
+- **Interrupção de Efeitos Colaterais**: Se a tarefa não existir ou já estiver excluída, o caso de uso lança a exceção de negócio e **não aciona o repositório**.
+- **Resposta HTTP 204 No Content**: Rota `DELETE /tasks/:id` responde sem corpo conforme o padrão REST do template.
 
 ---
 
 ## Etapa 10 — Testes de jornada com Playwright
 
-**Objetivo**: Fechar a pirâmide de testes com API testing black-box.
+**Objetivo**: Fechar a pirâmide de testes com testes de API black-box executados sobre HTTP e PostgreSQL reais.
 
-### Por que Playwright para API testing?
+### Fluxo OpenSpec
 
-Testes unitários e e2e com Supertest validam componentes isolados. Mas somente testes **black-box sobre HTTP real** garantem que um cliente externo vivencia o comportamento contratado na spec.
+```bash
+# Com AI agent:
+/opsx-propose playwright-e2e-journey
+/opsx-apply
+/opsx-archive
 
-### Pirâmide completa
-
-```
-        ▲
-       / \     [Playwright] Jornada Real de API (HTTP real + PostgreSQL real)
-      /   \
-     /-----\   [Vitest + Supertest] Integração de Camadas (Fastify em memória)
-    /       \
-   /---------\ [Vitest] Domínio Puro e Use Cases (Invariantes e 100% de branches)
-```
-
-### O que é configurado
-
-- `playwright.config.ts`: API Testing sem navegadores (fixture `request`/`APIRequestContext`).
-- `webServer`: Inicia `pnpm start:dev` e aguarda `/api/docs` antes dos testes.
-- Scripts: `pnpm test:pw` e `pnpm test:pw:report`.
-
-### A suíte de jornada
-
-```
-tests/playwright/tasks-api.spec.ts (serial)
-  1. POST /tasks     → 201 Created
-  2. GET /tasks/{id} → 200 OK (dados persistidos)
-  3. PATCH /tasks/{id} → 200 OK (status alterado)
-  4. GET /tasks      → 200 OK (tarefa na listagem)
-  5. DELETE /tasks/{id} → 204 No Content
-  6. GET /tasks/{id} → 404 TASK_NOT_FOUND (soft delete confirmado)
-  7. GET /tasks (sem x-api-key) → 401 UNAUTHORIZED
-  8. GET /tasks/invalid-uuid → 400 VALIDATION_ERROR
+# Manualmente via CLI:
+openspec new change "playwright-e2e-journey"
+# No .openspec.yaml declarar skip_specs: true (enabler de testes E2E)
+openspec archive --change "playwright-e2e-journey"
 ```
 
-### 💡 Lição
+### A Pirâmide Completa de Testes
 
-> Testes unitários garantem a lógica interna. Testes de integração garantem que os adaptadores funcionam. Mas somente testes black-box com Playwright garantem que um cliente HTTP externo vivencia exatamente o comportamento contratado na spec.
+```text
+         ▲
+        / \     [Playwright] Jornada Real de API (Black-Box sobre HTTP + PostgreSQL real)
+       /   \
+      /─────\   [Vitest + Supertest] Integração de Camadas (Pipes / Guards / Controllers)
+     /       \
+    /─────────\ [Vitest] Domínio Puro e Use Cases (Invariantes e 100% de branches)
+```
+
+### Setup do Playwright para API Testing
+
+Adicionamos o Playwright como ferramenta focada em API (sem download de browsers pesados):
+
+```bash
+pnpm add -D @playwright/test
+```
+
+Configuração em `playwright.config.ts`:
+```typescript
+import { defineConfig } from '@playwright/test'
+
+export default defineConfig({
+  testDir: './tests/playwright',
+  use: {
+    baseURL: process.env.API_BASE_URL || 'http://localhost:3000',
+    extraHTTPHeaders: {
+      'Content-Type': 'application/json',
+    },
+  },
+  webServer: {
+    command: 'pnpm start',
+    url: 'http://localhost:3000/actuator/health',
+    reuseExistingServer: !process.env.CI,
+    timeout: 30000,
+  },
+})
+```
+
+Scripts adicionados no `package.json`:
+```json
+"test:pw": "playwright test",
+"test:pw:report": "playwright show-report"
+```
+
+### Suíte de Jornada Black-Box (`tests/playwright/tasks-api.spec.ts`)
+
+Executa o fluxo completo do cliente:
+1. `POST /tasks` → 201 Created (cria tarefa com dados válidos).
+2. `GET /tasks/{id}` → 200 OK (valida se os dados foram persistidos).
+3. `PATCH /tasks/{id}` → 200 OK (atualiza o status da tarefa).
+4. `GET /tasks` → 200 OK (tarefa aparece na listagem paginada).
+5. `DELETE /tasks/{id}` → 204 No Content (exclusão lógica).
+6. `GET /tasks/{id}` → 404 Not Found (confirma que o soft delete excluiu da consulta).
+7. `GET /tasks` (sem `x-api-key`) → 401 Unauthorized (segurança global).
+8. `GET /tasks/uuid-invalido` → 400 Bad Request (validação do pipe de UUID).
 
 ---
 
 ## Etapa 11 — Validação final
 
-**Objetivo**: Executar todos os quality gates e confirmar a aderência completa da implementação à spec.
+**Objetivo**: Executar a bateria completa de quality gates garantindo 100% de conformidade técnica e aderência à spec.
 
-### Comandos de validação
+### Comandos dos Quality Gates
 
 ```bash
-pnpm lint              # ESLint: 0 erros/warnings
-pnpm build             # SWC + TSC: compilação sem erros
-pnpm test              # Vitest: 75 testes unitários
-pnpm test:cov          # Cobertura: 98.51% linhas, 100% funções
-pnpm test:e2e          # Supertest: 32 testes e2e
-pnpm test:pw           # Playwright: 8 testes sobre HTTP real
-openspec validate --specs  # Specs válidas
+pnpm check              # Biome: formatação e regras de linter sem erros
+pnpm build              # Compilação limpa do TypeScript / NestJS
+pnpm test               # Testes unitários com Vitest
+pnpm test:cov           # Cobertura de testes unitários (>95% em domain e use cases)
+pnpm test:e2e           # Testes de integração E2E com Vitest + Supertest
+pnpm test:pw            # Testes de jornada completa black-box com Playwright
+openspec validate --specs # Validação formal dos contratos OpenSpec
 ```
 
-### Resultados
+### Checklist Final do Workshop
 
-| Camada         | Comando             | Resultado        |
-| -------------- | ------------------- | ---------------- |
-| Lint & Padrões | `pnpm lint`         | ✅ 0 erros       |
-| Build          | `pnpm build`        | ✅ 26 arquivos   |
-| Unitários      | `pnpm test`         | ✅ 75 testes     |
-| Cobertura      | `pnpm test:cov`     | ✅ 98.51% linhas |
-| E2E            | `pnpm test:e2e`     | ✅ 32 testes     |
-| Jornada API    | `pnpm test:pw`      | ✅ 8 testes      |
-| Specs          | `openspec validate` | ✅ válidas       |
+- [ ] Requisitos documentados no padrão de User Stories.
+- [ ] Especificações OpenAPI criadas e validadas antes do código.
+- [ ] Entidades ricas de domínio defendendo suas invariantes sem dependência de framework.
+- [ ] Use cases com testes de propagação de erro e sem supressão silenciosa.
+- [ ] Inversão de dependência (DIP) usando classes abstratas do TypeScript.
+- [ ] Segurança Secure by Default com `ApiKeyGuard` global e decorator `@Public()`.
+- [ ] Testes de jornada cobrindo todo o ciclo de vida da API sobre HTTP real.
+- [ ] Todas as decisões arquiteturais rastreáveis via OpenSpec.
 
 ---
 
-## Para levar daqui
+## 🎯 Conclusão
 
-1. **Nenhum endpoint nasce no código**: Documente a US, proponha a spec, valide o contrato e só então implemente.
-2. **Modelos anêmicos são proibidos**: Centralize validações dentro da entidade de domínio rica.
-3. **Use cases devem propagar falhas**: Nunca silencie exceções; assegure nos testes que efeitos colaterais são abortados.
-4. **Execute `pnpm test:pw` antes de abrir PR**: Testar contra servidor e banco reais é a melhor proteção contra falhas de rede e serialização.
-5. **Cada decisão é rastreável**: ADRs existem para que o time saiba _por quê_, não só _o quê_.
+Com este workshop, o time aprende que **Spec-Driven Development** não é sobre burocracia de documentação, mas sim sobre **clareza de contratos, segurança na implementação e qualidade do código entregue**.
